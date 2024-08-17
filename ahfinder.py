@@ -11,8 +11,13 @@ import traceback
 import threading
 
 oldauctions = {} # Global
+
+def getLastUpdated():
+    return requests.get("https://api.hypixel.net/v2/skyblock/auctions").json()["lastUpdated"]
+
 def every(delay, task):
-  next_time = time.time() + delay
+  r = requests.get("https://api.hypixel.net/v2/skyblock/auctions").json()
+  next_time = getLastUpdated()/1000 + delay
   while True:
     time.sleep(max(0, next_time - time.time()))
     try:
@@ -371,6 +376,7 @@ def start():
     init = requests.get("https://api.hypixel.net/v2/skyblock/auctions").json()
     threads = []
     pages = init["totalPages"]
+    starttime = time.time()
     for i in range(pages):
         t = threading.Thread(target=scanAH, args=(i,), name=f"t{str(i)}")
         threads.append(t)
@@ -382,6 +388,9 @@ def start():
         t.join()
     
     #compareAuctions()
+    print(time.time())
+    print(init["lastUpdated"]/1000)
+    print(starttime - time.time())
     saveData()
 
 print("~~~~AHFINDER~~~~")
